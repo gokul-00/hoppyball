@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HOPPY BALL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+    body{
+      margin: 0;  
+    }
+canvas {
+    
+    border:1px solid #d3d3d3;
+    background-color: #1a1647;
+}
+div{
+  border: 1px ridge black;
+  color: white;
+  background-color: black;
+  cursor: pointer;
+}
+</style>
+</head>
+<body onload="startGame()">
+  <div>
+  <span>SCORE:</span>
+  <span id="score"></span></div>
+    <canvas></canvas>
+<script>
+
+var tapBall;
+var obstacles = [];
+const canvas = document.querySelector('canvas');
+const c = canvas.getContext('2d');
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+2
+addEventListener("resize",function(){
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    init();
+})
+
+addEventListener("touchstart", function(){
+    accelerate(-0.2);
+})
+
+addEventListener("touchend", function(){
+    accelerate(0.1);
+})
+
+addEventListener("mousedown", function(){
+    accelerate(-0.2);
+})
+
+addEventListener("mouseup", function(){
+    accelerate(0.1);
+})
+var point;
+var gameover;
+var bgm;
+function startGame(){
+    init();
+    tapBall = new Component(canvas.width/2,canvas.height*0.75,10,true);
+    animate();
+    gameover = new sound("sound/gameover.mp3");
+    point = new sound("sound/point.mp3");
+    bgm = new sound("sound/bgm.mp3");
+    bgm.sound.setAttribute("loop","infinite");
+    bgm.play();
+}
+
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play = function(){
+      this.sound.play();
+    }
+    this.stop = function(){
+      this.sound.pause();
+    }
+}
+
+function distance(x1, y1, x2, y2) {
+    const xDist = x2 - x1;
+    const yDist = y2 - y1;
+
+    return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+}
+
+function randomIntFromRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+var obstacleDetails = [
+  { color:"red",
+    startAngle:0,
+    endAngle:120
+  },
+  { color:"blue",
+    startAngle:120,
+    endAngle:240
+  },
+  { color:"green",
+    startAngle:240,
+    endAngle:360
+  }
+];
+
+var test ;
+var score = 0 ;
+
+
+function crash(obstacle){
+  obstacleDetails.forEach(element => {
+    var s = (element.startAngle + degreeCount) % 360;
+    var e = (element.endAngle + degreeCount) % 360;
+    if(tapBall.y - obstacle.y > 0){
+    if(s<90 && e>90){
+      if(element.color == "red"){test = false;}
+      else{test = true;}
+    }}
+    else{
+      if(s<270 && e>270){
+      if(element.color == "red"){test = false;
+      score=obstacles.indexOf(obstacle)+1;
+      point.play();}
+      else{test = true;}
+    }
+    }
+  });
+}
+
+var test = 3;
+
+function Component(x,y,radius,bool){
+   this.x = x;
+   this.y = y;
+   this.radius = radius;
+   this.bool = bool;
+   this.gravity = 0.05;
+   this.gravitySpeed = 0;
+   this.startAngle = 0;
+   this.endAngle = 0;
+   this.update = function(){
+     this.draw();
+     if(tapBall.y+tapBall.radius+this.gravitySpeed>=canvas.height){
+         gameover.play();
+         localStorage.setItem("score",score);
+         cancelAnimationFrame(id);
+         setTimeout(function(){
+         window.open("gameover.html","_top"); 
+        },1500);
+     }
+   obstacles.forEach(element => {
+     var cordDist = distance(tapBall.x,tapBall.y,element.x,element.y);
+     var verticalDist = element.radius + tapBall.radius + 10 + tapBall.gravitySpeed;
+     if((cordDist <= verticalDist) && (cordDist >= element.radius-tapBall.radius) ){
+       crash(element);
+       if(test){ 
+        gameover.play();
+        localStorage.setItem("score",score); 
+        cancelAnimationFrame(id);
+        setTimeout(function(){
+         window.open("gameover.html","_top"); 
+        },1500);
+        
+       }
+     }
+   });  
+    if(tapBall.y<canvas.height/2){
+      obstacles.forEach(element => {
+        element.y += 0.01 ;
+      });
+    }
+    
+     
+   };
+   this.draw = function(){
+      if(bool){
+        c.beginPath();
+        c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        c.fillStyle = "red";
+        c.fill();  
+      }
+      else{ 
+        c.beginPath();
+        c.arc(this.x, this.y, this.radius, 0+this.startAngle, 2 * Math.PI/3+this.endAngle);
+        c.lineWidth = 10;
+        c.strokeStyle = "red";
+        c.stroke();
+        c.beginPath();
+        c.arc(this.x, this.y, this.radius, 2 * Math.PI/3+this.startAngle,4 * Math.PI/3+this.endAngle);
+        c.lineWidth = 10;
+        c.strokeStyle = "blue";
+        c.stroke();
+        c.beginPath();
+        c.arc(this.x, this.y, this.radius, 4 * Math.PI/3+this.startAngle,2 * Math.PI+this.endAngle);
+        c.lineWidth = 10;
+        c.strokeStyle = "green";
+        c.stroke();
+      }
+   };
+   this.newPos = function() {
+    this.gravitySpeed += this.gravity;
+    this.y += this.gravitySpeed;
+   }
+   
+}
+var id;
+var degreeCount = 0 ;
+
+function animate(){
+    id = requestAnimationFrame(animate);
+    c.clearRect(0,0,canvas.width,canvas.height);
+    tapBall.update();
+    obstacles.forEach(element => {
+      element.startAngle+=1*Math.PI/180;
+      element.endAngle+=1*Math.PI/180;
+      element.update();
+    });
+    tapBall.newPos();
+    degreeCount++;
+    document.getElementById("score").innerHTML = score; 
+}
+function accelerate(n) {
+    tapBall.gravity = n;
+}
+
+function init(){
+  for(var i=0 ; i<100 ; i++){
+    
+    var x = canvas.width/2;
+    var y = canvas.height/2 + 50 - (250*i);
+    var r = randomIntFromRange(45,60);
+    obstacles.push(new Component(x,y,r,false));
+  }
+};
+
+
+
+
+</script>
+
+</body>
+</html>
