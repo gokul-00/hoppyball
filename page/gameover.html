@@ -44,12 +44,30 @@
        font-family: 'Piedra', cursive;
        font-size: 20px; 
     }
+    span{
+        border: 1px ridge black;
+        padding: 5px 10px ;
+        color: white;
+        background-color: black;
+    }
     </style>
 </head>
 <body>
     <p>GAME OVER!!!</p>
+    <span>your score:</span><span id="score"></span>
+    <span>high score:</span><span id="highscore"></span>
     <a href="game.html">
     <button type="button">try again</button></a>
     <span id="credit">made by  GOKUL😎</span>
+    <script>
+       
+        var highscore = localStorage.getItem("highscore"); 
+        var score = localStorage.getItem("score");
+        if(parseInt(highscore)<parseInt(score)){
+            localStorage.setItem("highscore",score);
+        }
+        document.getElementById("score").innerHTML=localStorage.getItem("score");
+        document.getElementById("highscore").innerHTML=localStorage.getItem("highscore");
+     </script>
 </body>
 </html>
